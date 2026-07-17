@@ -40,12 +40,60 @@ If your board differs, override in `platformio.ini`:
 build_flags = ${common.build_flags} -D RELAY_GPIO=26 -D RELAY_ACTIVE_LOW=1
 ```
 
-## Flashing
+## Flashing: you need a USB-TTL adapter
 
-The ESP32R4 has no USB-serial bridge. Connect a USB-TTL adapter (e.g. CP2102) to
-3.3V, GND, TX, RX, and **remove the jumper next to the ESP32** before flashing.
-Hold **IO0** while powering up to force bootloader mode if the board is not
-detected.
+**The ESP32R4 has no USB port and no USB-serial bridge.** No cable will flash it
+directly. You need a USB-to-TTL serial adapter — a CP2102 is what the board's
+write-ups recommend — **switched to 3.3V, not 5V**.
+
+| Adapter | Board |
+| --- | --- |
+| `3.3V` | `3.3V` |
+| `GND` | `GND` |
+| `TX` | `RX` |
+| `RX` | `TX` |
+
+TX and RX cross over. Two rules that matter more than the wiring:
+
+- **Remove the jumper next to the ESP32** before flashing, and put it back after.
+- **Never connect the DC/mains supply and the adapter's 3.3V at the same time.**
+  You are powering the ESP32 directly, bypassing the onboard regulator.
+
+### Entering bootloader mode
+
+A 4-wire hookup carries no DTR/RTS, so nothing can auto-reset the board into the
+bootloader — not `pio run -t upload`, not the web flasher. Do it by hand each
+time, *before* starting the flash:
+
+1. Hold **Prog**
+2. Press and release **RST**
+3. Release **Prog**
+
+The board is now waiting for a firmware image.
+
+### Which route to flash
+
+The web flasher (Chrome/Edge) talks to the adapter's serial port directly, so on
+Windows it needs no driver plumbing. `mise run upload` from WSL2 does: WSL2 has
+no USB access, so the adapter has to be attached with
+[usbipd-win](https://github.com/dorssel/usbipd-win) first. The web flasher is
+the path of least resistance there.
+
+### Running the self-test afterwards
+
+`mise run selftest` has to *hear* relays click, and relay coils run off the main
+supply — which must not be connected while the adapter's 3.3V is. So flash
+first, then swap power over:
+
+1. Flash the self-test build with the adapter powering the board (jumper out).
+2. Disconnect the adapter's **3.3V** wire only; leave `GND`, `TX`, `RX` on.
+3. Refit the jumper and power the board from its normal DC input.
+4. Open the serial monitor — a shared ground means it still reads — and listen
+   for which relay clicks.
+
+Steps 2–4 follow from the "never both power sources" rule rather than from the
+vendor docs; if in doubt, power the board normally and read the serial log with
+only `GND`/`TX`/`RX` connected.
 
 ## Pump wiring
 

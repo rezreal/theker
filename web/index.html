@@ -31,10 +31,29 @@
       </section>
 
       <section class="card">
-        <h2>2. Connect and flash</h2>
+        <h2>2. Wire up a USB-TTL adapter</h2>
         <p>
-          Plug the board into USB. If it does not appear, hold the
-          <strong>IO0</strong> button while connecting to force bootloader mode.
+          The RobotDyn ESP32R4 has no USB port — it needs a USB-to-TTL serial
+          adapter (a CP2102 is the usual choice), set to <strong>3.3V</strong>.
+        </p>
+        <ul class="wiring">
+          <li><code>3.3V</code> → board <code>3.3V</code></li>
+          <li><code>GND</code> → board <code>GND</code></li>
+          <li><code>TX</code> → board <code>RX</code></li>
+          <li><code>RX</code> → board <code>TX</code></li>
+        </ul>
+        <p class="warn">
+          Remove the jumper next to the ESP32 first, and never have the mains/DC
+          supply connected at the same time as the adapter's 3.3V.
+        </p>
+
+        <h2>3. Put it in bootloader mode, then flash</h2>
+        <p>
+          There is no auto-reset on a 4-wire hookup, so the board cannot be put
+          into bootloader mode for you. Do it by hand <em>before</em> clicking
+          flash: <strong>hold Prog</strong> → press and release <strong>RST</strong>
+          → release <strong>Prog</strong>. Then click flash and pick the
+          adapter's serial port.
         </p>
 
         <esp-web-install-button id="installer">

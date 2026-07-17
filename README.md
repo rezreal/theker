@@ -11,16 +11,27 @@ a relay works — see [docs/HARDWARE.md](docs/HARDWARE.md).
 
 ## Flash it
 
+> **You need a USB-TTL serial adapter.** The ESP32R4 has no USB port — a CP2102
+> or similar, set to 3.3V, wired to `3.3V`/`GND`/`TX`/`RX`. There is no
+> auto-reset on that hookup, so put the board in bootloader mode by hand first
+> (hold **Prog**, tap **RST**, release **Prog**). Full procedure and the power
+> rules in [docs/HARDWARE.md](docs/HARDWARE.md).
+
 **From the browser** (Chrome or Edge — Web Serial is required):
-open the project's GitHub Pages site, pick a version, click flash.
+open <https://rezreal.github.io/theker/>, pick a version, click flash. On
+Windows this avoids WSL2's lack of USB access entirely.
 
 **From a checkout:**
 
 ```bash
 mise trust && mise install    # python, node, platformio -- see mise.toml
-mise run upload               # build and flash over USB
+mise run upload               # build and flash via the USB-TTL adapter
 mise run monitor              # watch the serial log
 ```
+
+From WSL2 this needs the adapter attached with
+[usbipd-win](https://github.com/dorssel/usbipd-win) first — WSL2 has no USB
+access of its own. The web flasher above sidesteps that.
 
 That is the whole setup: [mise](https://mise.jdx.dev) pins the toolchain, and
 PlatformIO bundles its own esptool, so nothing else has to be installed.

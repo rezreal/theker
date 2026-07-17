@@ -70,6 +70,12 @@ it disagree and the active level is undocumented. See
 [docs/HARDWARE.md](docs/HARDWARE.md). Never assert it works on hardware that has
 not been checked with `mise run selftest`.
 
+**This board has no USB port.** It flashes over a USB-TTL adapter at 3.3V, with
+no DTR/RTS — so nothing auto-resets it and the bootloader has to be entered by
+hand (hold Prog, tap RST, release Prog) before every flash. Do not write docs
+that say "plug it into USB". The dev machine is WSL2, which has no USB access at
+all without usbipd-win.
+
 ## Conventions
 
 - Only the squirt command is publicly documented; the parser validates the

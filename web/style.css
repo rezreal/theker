@@ -76,6 +76,21 @@ h2 {
   color: var(--muted);
 }
 
+ul.wiring {
+  margin: 0.75rem 0;
+  list-style: none;
+  padding-left: 0;
+}
+
+ul.wiring li {
+  margin-top: 0.3rem;
+}
+
+.card h2 + p,
+.card p + h2 {
+  margin-top: 0.75rem;
+}
+
 .card li + li {
   margin-top: 0.4rem;
 }
