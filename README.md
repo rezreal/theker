@@ -103,6 +103,11 @@ useful for extending the protocol.
 stream rather than discrete packets: they may split one frame across writes or
 pack several into one. The parser handles both and resynchronises after garbage.
 
+HM-10 modules split the two directions across two services, so the board also
+exposes the notify side (`ffe0`/`ffe4`) for hosts that expect to find it. It is
+present but silent — see the caveats below. Only `ffe5` is advertised, matching
+what is documented for the Piupiu.
+
 ## Development
 
 ```bash
@@ -153,8 +158,10 @@ into the page, so the deployed site loads no code from a CDN at runtime.
   but that issue is still an open *documentation request* — a shipped Buttplug
   protocol implementation for the Piupiu is not confirmed. Any host that writes
   the command itself works regardless.
-- **HM-10 fidelity.** Only `ffe5`/`ffe9` (write) is exposed. Real HM-10 modules
-  often also expose `ffe0`/`ffe4` for notify; if a host needs that to discover
-  the device, it is a small addition.
+- **The notify characteristic never fires.** `ffe0`/`ffe4` exists so hosts that
+  expect the full HM-10 layout find it during service discovery, but no Piupiu
+  notify payload is documented, so the board sends nothing rather than invent
+  traffic a host might act on. If something subscribes, the serial log says so
+  — that is evidence the real protocol has responses worth working out.
 - Only the squirt command is implemented, because it is the only one documented
   for this device.

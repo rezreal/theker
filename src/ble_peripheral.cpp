@@ -47,8 +47,20 @@ class WriteCallbacks : public NimBLECharacteristicCallbacks {
     }
 };
 
+class NotifyCallbacks : public NimBLECharacteristicCallbacks {
+    void onSubscribe(NimBLECharacteristic* characteristic, NimBLEConnInfo& info,
+                     uint16_t sub_value) override {
+        (void)characteristic;
+        (void)info;
+        if (g_handlers.onSubscribe != nullptr) {
+            g_handlers.onSubscribe(sub_value);
+        }
+    }
+};
+
 ServerCallbacks g_server_callbacks;
 WriteCallbacks g_write_callbacks;
+NotifyCallbacks g_notify_callbacks;
 
 void addReadOnlyString(NimBLEService* service, uint16_t uuid, const char* value) {
     NimBLECharacteristic* characteristic =
@@ -73,6 +85,19 @@ void bleStart(const BleIdentity& identity, const BleHandlers& handlers) {
     NimBLECharacteristic* characteristic = service->createCharacteristic(
         kWriteCharUuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
     characteristic->setCallbacks(&g_write_callbacks);
+
+    // HM-10 style modules carry device -> host traffic on a second service, and
+    // a host may expect to find it during service discovery even though the
+    // relay only needs the write side.
+    //
+    // It is exposed but stays silent: no Piupiu notify payload is documented,
+    // and inventing traffic a host might act on is worse than sending nothing.
+    // If a host subscribes, onSubscribe reports it -- that is evidence the real
+    // protocol has responses worth working out.
+    NimBLEService* notify_service = server->createService(kNotifyServiceUuid);
+    NimBLECharacteristic* notify_characteristic = notify_service->createCharacteristic(
+        kNotifyCharUuid, NIMBLE_PROPERTY::NOTIFY | NIMBLE_PROPERTY::READ);
+    notify_characteristic->setCallbacks(&g_notify_callbacks);
 
     // The advertised name has to stay the Hismith one for hosts to match it, so
     // this is where the device reports what it really is. Not advertised, so it

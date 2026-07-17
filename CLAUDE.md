@@ -36,7 +36,14 @@ weaken these to make a test pass.
 **The advertised BLE name must stay `Hismith Piupiu`.** Hosts match on that
 string to recognise the protocol, and a device can only advertise one name. The
 board's own identity lives in the Device Information Service (`180a`) instead —
-put identifying info there, not in the GAP name.
+put identifying info there, not in the GAP name. Likewise only `ffe5` is
+advertised: that is what is documented for this device, and advertising the
+HM-10 `ffe0` service too would make it *less* like the thing it imitates.
+
+**`ffe0`/`ffe4` is exposed but must stay silent.** It exists so hosts expecting
+the full HM-10 layout find it during service discovery. No Piupiu notify payload
+is documented, so do not invent one — a host may act on it. `onSubscribe` logs
+subscribers instead, which is real evidence about the protocol.
 
 **Keep `hismith_protocol` and `relay` free of Arduino includes.** They are pure
 C++ so the only real logic is host-testable without hardware. An `#include

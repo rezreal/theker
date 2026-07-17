@@ -9,10 +9,17 @@
 
 namespace hismith {
 
-// GATT identifiers. This is the classic HM-10 BLE-serial UUID pair, which is
-// why the transport below is a byte stream rather than discrete packets.
+// GATT identifiers. This is the classic HM-10 BLE-serial layout, which is why
+// the transport below is a byte stream rather than discrete packets.
+//
+// HM-10 style modules split the two directions across two services: ffe5/ffe9
+// carries host -> device writes, ffe0/ffe4 carries device -> host notifies.
+// Only the write side is needed to drive the relay, but a host doing service
+// discovery may expect to find both.
 constexpr char kServiceUuid[] = "0000ffe5-0000-1000-8000-00805f9b34fb";
 constexpr char kWriteCharUuid[] = "0000ffe9-0000-1000-8000-00805f9b34fb";
+constexpr char kNotifyServiceUuid[] = "0000ffe0-0000-1000-8000-00805f9b34fb";
+constexpr char kNotifyCharUuid[] = "0000ffe4-0000-1000-8000-00805f9b34fb";
 
 constexpr uint8_t kFrameHeader = 0xCC;
 constexpr size_t kFrameLen = 4;

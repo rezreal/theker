@@ -94,6 +94,13 @@ void onBleDisconnect() {
     g_disconnect_pending.store(true);
 }
 
+void onBleSubscribe(uint16_t sub_value) {
+    // Notable rather than routine: a subscriber expects responses, and no
+    // Piupiu notify payload is documented, so nothing is ever sent.
+    Serial.printf("[ble] host %s notify characteristic (cccd=0x%04x); nothing will be sent\n",
+                  sub_value == 0 ? "unsubscribed from" : "subscribed to", sub_value);
+}
+
 void handleFrame(const hismith::Frame& frame) {
     if (frame.isSquirt()) {
         g_relay.squirt(millis());
@@ -145,6 +152,7 @@ void setup() {
     handlers.onData = onBleData;
     handlers.onConnect = onBleConnect;
     handlers.onDisconnect = onBleDisconnect;
+    handlers.onSubscribe = onBleSubscribe;
 
     const hismith::BleIdentity identity{
         HISMITH_BLE_NAME,

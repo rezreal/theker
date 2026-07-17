@@ -24,11 +24,15 @@ struct BleHandlers {
     void (*onData)(const uint8_t* data, size_t len) = nullptr;
     void (*onConnect)() = nullptr;
     void (*onDisconnect)() = nullptr;
+    // A host subscribed to (or unsubscribed from) the notify characteristic.
+    // Worth surfacing: it means the host expects responses we cannot send, and
+    // no Piupiu notify payload is documented.
+    void (*onSubscribe)(uint16_t sub_value) = nullptr;
 };
 
-// Brings up the GATT server and starts advertising, exposing the Hismith
-// service (ffe5) with its write characteristic (ffe9), plus a Device
-// Information Service (180a).
+// Brings up the GATT server and starts advertising, exposing the Hismith write
+// service (ffe5/ffe9), the HM-10 style notify service (ffe0/ffe4), and a
+// Device Information Service (180a).
 void bleStart(const BleIdentity& identity, const BleHandlers& handlers);
 
 }  // namespace hismith
