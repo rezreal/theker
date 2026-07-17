@@ -1,3 +1,7 @@
+# Verification gate only: no artifacts are uploaded. The release workflow is
+# what produces downloadable builds -- it attaches firmware.factory.bin to the
+# GitHub release and publishes it to the flasher site.
+
 name: CI
 
 on:
@@ -40,14 +44,6 @@ jobs:
       - name: Build self-test firmware
         run: pio run -e esp32r4-selftest
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: firmware
-          path: |
-            .pio/build/esp32r4/firmware.bin
-            .pio/build/esp32r4/firmware.factory.bin
-          if-no-files-found: error
-
   flasher:
     name: Build web flasher
     runs-on: ubuntu-latest
@@ -65,9 +61,3 @@ jobs:
       - name: Build flasher
         working-directory: web
         run: npm run build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: flasher
-          path: web/dist
-          if-no-files-found: error
