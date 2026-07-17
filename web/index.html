@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hismith Piupiu Emulator — Firmware Flasher</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="install-button.js"></script>
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Hismith Piupiu Emulator</h1>
+      <p class="lede">
+        Flash an ESP32 relay board so it advertises as a
+        <code>Hismith Piupiu</code> over BLE and drives a pump from the
+        documented squirt command.
+      </p>
+
+      <section class="card">
+        <h2>1. Pick a firmware version</h2>
+        <div class="row">
+          <select id="version" aria-label="Firmware version" disabled>
+            <option>Loading…</option>
+          </select>
+          <a id="notes" class="notes" href="#" target="_blank" rel="noopener" hidden>
+            Release notes ↗
+          </a>
+        </div>
+        <p id="status" class="status" role="status"></p>
+      </section>
+
+      <section class="card">
+        <h2>2. Connect and flash</h2>
+        <p>
+          Plug the board into USB. If it does not appear, hold the
+          <strong>IO0</strong> button while connecting to force bootloader mode.
+        </p>
+
+        <esp-web-install-button id="installer">
+          <button slot="activate" class="primary">Flash firmware</button>
+          <span slot="unsupported" class="warn">
+            This browser cannot flash. Web Serial is required — use Chrome or
+            Edge on desktop.
+          </span>
+          <span slot="not-allowed" class="warn">
+            Flashing requires a secure (HTTPS) page.
+          </span>
+        </esp-web-install-button>
+      </section>
+
+      <section class="card subtle">
+        <h2>After flashing</h2>
+        <ul>
+          <li>
+            The board advertises as <code>Hismith Piupiu</code>, service
+            <code>ffe5</code>, write characteristic <code>ffe9</code>.
+          </li>
+          <li>
+            Writing <code>cc 0b 01 0c</code> closes the relay; it stays closed
+            while the commands keep coming and releases shortly after they stop.
+          </li>
+          <li>
+            The default build drives <strong>GPIO25</strong> (Relay 1 on a
+            RobotDyn ESP32R4) as active-high. If your relay does not click, the
+            pinout differs — see the self-test build in the README.
+          </li>
+        </ul>
+      </section>
+
+      <footer>
+        <a id="repo" href="#" target="_blank" rel="noopener">Source and documentation ↗</a>
+      </footer>
+    </main>
+  </body>
+</html>

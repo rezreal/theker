@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, release, publish flasher
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+          restore-keys: pio-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+
+      - name: Unit tests (host)
+        run: pio test -e native
+
+      # Stamps the tag into the Device Information Service, so a flashed board
+      # can report which release it is running.
+      - name: Build firmware
+        env:
+          PLATFORMIO_BUILD_FLAGS: -D FIRMWARE_REVISION=\"${{ github.ref_name }}\"
+        run: pio run -e esp32r4
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --generate-notes \
+            .pio/build/esp32r4/firmware.factory.bin \
+            .pio/build/esp32r4/firmware.bin
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build flasher
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      # The flasher serves firmware same-origin from gh-pages: GitHub's CORS
+      # rules block a Pages site from fetching release assets with JS
+      # (esphome/esp-web-tools#521). Previously published builds are preserved,
+      # so the version picker keeps its history.
+      - name: Publish flasher and firmware to gh-pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          if git ls-remote --exit-code --heads "$REMOTE" gh-pages >/dev/null 2>&1; then
+            git clone --branch gh-pages --depth 1 "$REMOTE" site
+          else
+            mkdir site
+            git -C site init -b gh-pages
+            git -C site remote add origin "$REMOTE"
+          fi
+
+          cp -r web/dist/. site/
+          touch site/.nojekyll
+
+          python scripts/publish_firmware.py \
+            --site site \
+            --tag "$TAG" \
+            --firmware .pio/build/esp32r4/firmware.factory.bin \
+            --repository "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+
+          cd site
+          git add -A
+          if git diff --cached --quiet; then
+            echo "nothing to publish"
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "Publish $TAG"
+          git push origin gh-pages

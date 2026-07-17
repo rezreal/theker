@@ -1,0 +1,13 @@
+{
+  "name": "hismith-piupiu-flasher",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser flasher for the Hismith Piupiu emulator firmware",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "esp-web-tools": "10.4.0"
+  }
+}

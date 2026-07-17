@@ -1,0 +1,49 @@
+# --- build output -----------------------------------------------------------
+.pio/
+.pioenvs/
+.piolibdeps/
+*.bin
+*.elf
+*.map
+
+# --- local tooling ----------------------------------------------------------
+# PlatformIO and Node are installed locally; nothing about this machine's setup
+# belongs in the repo.
+.venv/
+venv/
+env/
+node_modules/
+web/dist/
+site/
+
+# package-lock.json IS committed, so CI builds the flasher reproducibly.
+
+# --- python -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# --- local config and secrets -----------------------------------------------
+# These carry machine paths, tokens, or account details.
+.env
+.env.*
+*.local
+*.local.*
+secrets.*
+.netrc
+
+# --- editors and agents -----------------------------------------------------
+# .claude/ can hold local settings and worktrees pointing at absolute paths.
+.claude/
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# --- os ---------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
