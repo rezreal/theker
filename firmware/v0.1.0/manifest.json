@@ -1,0 +1,16 @@
+{
+  "name": "Hismith Piupiu Emulator",
+  "version": "v0.1.0",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "firmware.factory.bin",
+          "offset": 0
+        }
+      ]
+    }
+  ]
+}

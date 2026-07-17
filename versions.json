@@ -1,0 +1,12 @@
+{
+  "generated": "2026-07-17T06:45:05+00:00",
+  "repository": "https://github.com/rezreal/theker",
+  "releases": [
+    {
+      "version": "v0.1.0",
+      "date": "2026-07-17",
+      "manifest": "firmware/v0.1.0/manifest.json",
+      "notes": "https://github.com/rezreal/theker/releases/tag/v0.1.0"
+    }
+  ]
+}
