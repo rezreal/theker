@@ -4,7 +4,7 @@ Firmware that turns an ESP32 relay board into a BLE peripheral that speaks the
 **Hismith Piupiu** (lube launcher) protocol. It advertises under that name, and
 when a host writes the documented squirt command it closes a relay — so a pump on
 the relay is driven by anything that already talks to a Piupiu, whether that's
-your own `bleak`/`noble` script or a Buttplug/Intiface host.
+your own script or a Buttplug/Intiface host.
 
 Built for the **RobotDyn ESP32R4 Smart Home Controller**, but any ESP32 board with
 a relay works — see [docs/HARDWARE.md](docs/HARDWARE.md).
@@ -42,15 +42,14 @@ recognise the protocol, and a device can only advertise one name. So the board
 reports what it really is through a **Device Information Service** (`180a`)
 instead: manufacturer and model `the.ker`, plus the firmware revision. That is
 not advertised, so it changes nothing about how a host finds or matches the
-device; read it once connected to tell this box from the real thing:
+device. Read it once connected — a real Piupiu will not report these, so it is
+how you tell this box from the thing it is imitating:
 
-```bash
-uv run --with bleak tools/squirt.py --once
-# device info:
-#   manufacturer: the.ker
-#   model: the.ker
-#   firmware: v1.0.0
-```
+| Characteristic | Value |
+| --- | --- |
+| Manufacturer name (`2a29`) | `the.ker` |
+| Model number (`2a24`) | `the.ker` |
+| Firmware revision (`2a26`) | the release tag, e.g. `v1.0.0` |
 
 The relay is **held while commands repeat** and releases `HOLD_MS` after the last
 one, so the host controls dose by how long it keeps sending.
@@ -116,17 +115,22 @@ mise tasks        # list the rest
 The protocol parser and relay state machine are pure C++ with no Arduino
 includes, so all the real logic is tested on the host in CI.
 
-End-to-end against real hardware. `uv` comes with the toolchain and fetches
-`bleak` on the fly, so there is still nothing to install:
+### On hardware
 
-```bash
-uv run --with bleak tools/squirt.py --scan     # confirm it advertises
-uv run --with bleak tools/squirt.py --hold 3   # relay closes ~3s, then releases
-uv run --with bleak tools/squirt.py --hold 40  # trips the max-on lockout
-```
+`mise run monitor` logs every connect, disconnect, squirt, bad checksum and
+lockout, which is enough to follow what the board is doing.
 
-Interrupting `squirt.py` mid-hold is itself a test: the relay must drop on
-disconnect.
+Driving it needs a BLE host — this repo does not ship one. Any GATT client will
+do: with nRF Connect on a phone, connect, find service `ffe5`, and write
+`cc 0b 01 0c` to `ffe9`. The relay closes for `HOLD_MS` and releases; to hold it
+longer the host has to repeat the command.
+
+Two behaviours are worth knowing you have *not* checked this way. The relay
+logic is covered by `mise run test` on the host, but proving the `MAX_ON_MS`
+lockout on real hardware means writing continuously for over 30s, which is not
+practical by hand — so the safety cap is verified in tests, not on the bench.
+Pulling the host out of range mid-hold does exercise the disconnect failsafe,
+and the relay should drop immediately.
 
 ## CI and releases
 
@@ -148,7 +152,7 @@ into the page, so the deployed site loads no code from a CDN at runtime.
   community ([docs.buttplug.io#34](https://github.com/buttplugio/docs.buttplug.io/issues/34)),
   but that issue is still an open *documentation request* — a shipped Buttplug
   protocol implementation for the Piupiu is not confirmed. Any host that writes
-  the command yourself (`tools/squirt.py`) works regardless.
+  the command itself works regardless.
 - **HM-10 fidelity.** Only `ffe5`/`ffe9` (write) is exposed. Real HM-10 modules
   often also expose `ffe0`/`ffe4` for notify; if a host needs that to discover
   the device, it is a small addition.
