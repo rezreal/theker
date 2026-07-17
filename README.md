@@ -17,15 +17,16 @@ open the project's GitHub Pages site, pick a version, click flash.
 **From a checkout:**
 
 ```bash
-pip install platformio
-pio run -e esp32r4 -t upload
-pio device monitor
+mise trust && mise install    # python, node, platformio -- see mise.toml
+mise run upload               # build and flash over USB
+mise run monitor              # watch the serial log
 ```
 
-PlatformIO bundles its own esptool, so there is nothing else to install.
+That is the whole setup: [mise](https://mise.jdx.dev) pins the toolchain, and
+PlatformIO bundles its own esptool, so nothing else has to be installed.
 
 > Confirm the relay pin on your board before wiring a pump to it:
-> `pio run -e esp32r4-selftest -t upload`. See [docs/HARDWARE.md](docs/HARDWARE.md).
+> `mise run selftest`. See [docs/HARDWARE.md](docs/HARDWARE.md).
 
 ## How it behaves
 
@@ -44,7 +45,7 @@ not advertised, so it changes nothing about how a host finds or matches the
 device; read it once connected to tell this box from the real thing:
 
 ```bash
-./tools/squirt.py --once
+uv run --with bleak tools/squirt.py --once
 # device info:
 #   manufacturer: the.ker
 #   model: the.ker
@@ -106,20 +107,22 @@ pack several into one. The parser handles both and resynchronises after garbage.
 ## Development
 
 ```bash
-pio test -e native      # protocol + relay logic, no hardware needed
-pio run -e esp32r4      # build
+mise run test     # protocol + relay logic, no hardware needed
+mise run build    # build the firmware
+mise run check    # everything CI runs
+mise tasks        # list the rest
 ```
 
 The protocol parser and relay state machine are pure C++ with no Arduino
 includes, so all the real logic is tested on the host in CI.
 
-End-to-end against real hardware:
+End-to-end against real hardware. `uv` comes with the toolchain and fetches
+`bleak` on the fly, so there is still nothing to install:
 
 ```bash
-pip install bleak                 # only dependency outside the project, dev-only
-./tools/squirt.py --scan          # confirm it advertises
-./tools/squirt.py --hold 3        # relay closes for ~3s, then releases
-./tools/squirt.py --hold 40       # long enough to trip the max-on lockout
+uv run --with bleak tools/squirt.py --scan     # confirm it advertises
+uv run --with bleak tools/squirt.py --hold 3   # relay closes ~3s, then releases
+uv run --with bleak tools/squirt.py --hold 40  # trips the max-on lockout
 ```
 
 Interrupting `squirt.py` mid-hold is itself a test: the relay must drop on

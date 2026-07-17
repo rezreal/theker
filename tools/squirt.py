@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """Drive the emulator over BLE, for end-to-end verification.
 
-This is a development aid, not part of the firmware or the flashing path. It is
-the only thing here that needs a dependency outside the project:
+A development aid, not part of the firmware or the flashing path. Needs bleak,
+which uv fetches on the fly -- nothing to install:
 
-    pip install bleak
+    uv run --with bleak tools/squirt.py --scan   # just find the device
+    uv run --with bleak tools/squirt.py --hold 3 # hold the relay closed for 3s
+    uv run --with bleak tools/squirt.py --hold 40  # trips the max-on lockout
+    uv run --with bleak tools/squirt.py --once   # one command, relay ticks
 
-Examples:
-    ./squirt.py --scan                  # just find the device
-    ./squirt.py --hold 3                # hold the relay closed for 3s
-    ./squirt.py --hold 40               # long enough to trip the max-on lockout
-    ./squirt.py --once                  # a single command (relay ticks briefly)
+Interrupting a hold is itself a test: the relay must drop on disconnect.
 """
 
 import argparse

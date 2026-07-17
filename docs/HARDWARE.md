@@ -25,8 +25,8 @@ GPIO34–39, which are input-only on the ESP32 and therefore can only be inputs.
 That is good evidence, not proof, so confirm it on your own unit:
 
 ```bash
-pio run -e esp32r4-selftest -t upload
-pio device monitor
+mise run selftest
+mise run monitor
 ```
 
 Each candidate pin is driven HIGH for 1.5s then LOW for 1.5s, logging as it goes.

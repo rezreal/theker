@@ -1,0 +1,45 @@
+# Toolchain for this project.
+#
+#   mise trust && mise install
+#
+# gets everything needed to build, test and flash: nothing else has to be
+# installed on the machine. PlatformIO bundles its own esptool, so flashing
+# needs no separate tool either.
+#
+# Versions are kept in step with .github/workflows/ci.yml.
+
+[tools]
+python = "3.12"
+node = "20"
+# Backs the pipx: backend below -- without it, installing platformio fails.
+uv = "latest"
+"pipx:platformio" = "6.1.19"
+
+[tasks.test]
+description = "Run the host-native unit tests (no hardware needed)"
+run = "pio test -e native"
+
+[tasks.build]
+description = "Build the firmware"
+run = "pio run -e esp32r4"
+
+[tasks.upload]
+description = "Build and flash the firmware over USB"
+run = "pio run -e esp32r4 -t upload"
+
+[tasks.monitor]
+description = "Open the serial monitor"
+run = "pio device monitor"
+
+[tasks.selftest]
+description = "Flash the relay pin/polarity self-test (see docs/HARDWARE.md)"
+run = "pio run -e esp32r4-selftest -t upload"
+
+[tasks.web]
+description = "Build the web flasher into web/dist"
+dir = "web"
+run = ["npm ci", "npm run build"]
+
+[tasks.check]
+description = "Everything CI runs: tests, firmware, flasher"
+depends = ["test", "build", "web"]
